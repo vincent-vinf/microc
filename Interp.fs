@@ -270,8 +270,8 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
                 loop (exec body locEnv gloEnv store2)
             else
                 store2 //退出循环返回 环境store2
-
         loop store
+
     | For1 (e1, e2, e3, body) ->
         let (v, store1) = eval e1 locEnv gloEnv store
 
@@ -287,6 +287,10 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
 
         loop store1
 
+    | For2 (body) ->
+        let rec loop store1 =
+            loop (exec body locEnv gloEnv store1)
+        loop store
     | ForRange (a1, a2, t1, body) ->
         // key
         let (k, store) = access a1 locEnv gloEnv store

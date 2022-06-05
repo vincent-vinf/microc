@@ -39,6 +39,7 @@ and stmt =
   | If of expr * stmt * stmt         (* Conditional                 *)
   | While of expr * stmt             (* While loop                  *)
   | For of expr * stmt
+  | For2 of stmt
   | For1 of expr * expr * expr * stmt   
   | ForRange of access * access * access * stmt
   | Expr of expr                     (* Expression statement   e;   *)
