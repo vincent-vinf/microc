@@ -216,6 +216,10 @@ let rec cStmt stmt (varEnv : VarEnv) (funEnv : FunEnv) (C : instr list) : instr 
       RET (snd varEnv - 1) :: deadcode C
     | Return (Some e) -> 
       cExpr e varEnv funEnv (RET (snd varEnv) :: deadcode C)
+    | For1 (e1,e2,e3,body) ->
+      let labbegin = newLabel()
+      let (jumptest, C1) = makeJump (cExpr e2 varEnv funEnv (IFNZRO labbegin :: C))
+      cExpr e1 varEnv funEnv (addINCSP -1 (addJump jumptest (Label labbegin :: cStmt body varEnv funEnv (cExpr e3 varEnv funEnv (addINCSP -1 C1)))))
 
 and bStmtordec stmtOrDec varEnv : bstmtordec * VarEnv =
     match stmtOrDec with 
@@ -300,6 +304,12 @@ and cExpr (e : expr) (varEnv : VarEnv) (funEnv : FunEnv) (C : instr list) : inst
            (IFNZRO labtrue 
              :: cExpr e2 varEnv funEnv (addJump jumpend C2))
     | Call(f, es) -> callfun f es varEnv funEnv C
+    | Prim3(e1,e2,e3) ->
+      let (jumpend, C1) = makeJump C
+      let (labelse, C2) = addLabel (cExpr e3 varEnv funEnv C1)
+      cExpr e1 varEnv funEnv (IFZERO labelse 
+       :: cExpr e2 varEnv funEnv (addJump jumpend C2))
+    | _ -> failwith "unknow"
 
 (* Generate code to access variable, dereference pointer or index array: *)
 
