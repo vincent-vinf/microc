@@ -314,7 +314,6 @@ and cExpr (e : expr) (varEnv : VarEnv) (funEnv : FunEnv) (C : instr list) : inst
       let (labelse, C2) = addLabel (cExpr e3 varEnv funEnv C1)
       cExpr e1 varEnv funEnv (IFZERO labelse 
        :: cExpr e2 varEnv funEnv (addJump jumpend C2))
-    | _ -> failwith "unknow"
 
 (* Generate code to access variable, dereference pointer or index array: *)
 

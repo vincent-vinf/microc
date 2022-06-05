@@ -270,6 +270,7 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
                 loop (exec body locEnv gloEnv store2)
             else
                 store2 //退出循环返回 环境store2
+
         loop store
 
     | For1 (e1, e2, e3, body) ->
@@ -288,8 +289,7 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
         loop store1
 
     | For2 (body) ->
-        let rec loop store1 =
-            loop (exec body locEnv gloEnv store1)
+        let rec loop store1 = loop (exec body locEnv gloEnv store1)
         loop store
     | ForRange (a1, a2, t1, body) ->
         // key
@@ -300,32 +300,35 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
         let store = setSto store k 0
         let (t, store) = access t1 locEnv gloEnv store
         // 取得数组长度
-        let len = getSto store (t-1)
+        let len = getSto store (t - 1)
         // msg $"\nlen: {len}\n"
         let rec loop lstore =
             // 获取key
             let idx = getSto lstore k
+
             if idx < len then
                 // 设置value
                 let aval = getSto lstore t
-                let tmp = getSto lstore (aval+idx)
+                let tmp = getSto lstore (aval + idx)
                 let lstore = setSto lstore v tmp
                 let lstore = exec body locEnv gloEnv lstore
-                let lstore = setSto lstore k (idx+1)
+                let lstore = setSto lstore k (idx + 1)
                 loop lstore
-            else lstore
+            else
+                lstore
+
         loop store
 
 
 
-        // let (loc, store1) = access t1 locEnv gloEnv store
+    // let (loc, store1) = access t1 locEnv gloEnv store
 
 
-        // let (a, store1) = access acc locEnv gloEnv store
-        // let aval = getSto store1 a
-        // let (i, store2) = eval idx locEnv gloEnv store1
-        // (aval + i, store2)
-        // exec body locEnv gloEnv store
+    // let (a, store1) = access acc locEnv gloEnv store
+    // let aval = getSto store1 a
+    // let (i, store2) = eval idx locEnv gloEnv store1
+    // (aval + i, store2)
+    // exec body locEnv gloEnv store
 
     | Expr e ->
         // _ 表示丢弃e的值,返回 变更后的环境store1
@@ -344,7 +347,14 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
 
         loop stmts (locEnv, store)
 
-    | Return _ -> failwith "return not implemented" // 解释器没有实现 return
+    | Return (s) -> 
+        match s with
+        | None -> 
+            setSto store -1 0
+        | Some ss ->
+            let (res, store) = eval ss locEnv gloEnv store
+            setSto store -1 res
+
 
 and stmtordec stmtordec locEnv gloEnv store =
     match stmtordec with
@@ -442,6 +452,7 @@ and access acc locEnv gloEnv store : int * store =
         let aval = getSto store1 a
         let (i, store2) = eval idx locEnv gloEnv store1
         let len = getSto store1 (a - 1)
+
         if i >= len || i < 0 then
             failwith ("index out of array")
 
@@ -469,7 +480,13 @@ and callfun f es locEnv gloEnv store : int * store =
         bindVars (List.map snd paramdecs) vs (varEnv, nextloc) store1
 
     let store3 = exec fBody fBodyEnv gloEnv store2
-    (-111, store3)
+
+    try
+        let res = getSto store3 -1
+        (res, store3)
+    with
+    | :? System.Collections.Generic.KeyNotFoundException -> (0, store3)
+
 
 (* Interpret a complete micro-C program by initializing the store
    and global environments, then invoking its `main' function.
