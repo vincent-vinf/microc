@@ -3,11 +3,14 @@ void main() {
     int j;
     // 用普通的for赋值
     for (j = 0; j < 8; j++){
-        s[j] = j;
+        s[j] = j*2;
+        print s[j];
     }
     int x;
     int y;
     for x,y = range s {
-        print s[0];
+        print x;
+        print y;
+        println;
     }
 }

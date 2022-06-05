@@ -288,18 +288,32 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
         loop store1
 
     | ForRange (a1, a2, t1, body) ->
-        // let (untilValue,store) = access e2 locEnv gloEnv store
-        // let (loc, store1) = access e1 locEnv gloEnv store
-        // let store2 = setSto store1 loc 0
-        // let rec loop store2 =
-        //     let num = getSto store2 loc
-        //     if num<untilValue then
-        //         let store3 = exec body locEnv gloEnv store2
-        //         let update = num+1
-        //         let store4 = setSto store3 loc update
-        //         loop store4
-        //     else store2
-        // loop store2
+        // key
+        let (k, store) = access a1 locEnv gloEnv store
+        // value
+        let (v, store) = access a2 locEnv gloEnv store
+        // 设置 key 为 0
+        let store = setSto store k 0
+        let (t, store) = access t1 locEnv gloEnv store
+        // 取得数组长度
+        let len = getSto store (t-1)
+        // msg $"\nlen: {len}\n"
+        let rec loop lstore =
+            // 获取key
+            let idx = getSto lstore k
+            if idx < len then
+                // 设置value
+                let aval = getSto lstore t
+                let tmp = getSto lstore (aval+idx)
+                let lstore = setSto lstore v tmp
+                let lstore = exec body locEnv gloEnv lstore
+                let lstore = setSto lstore k (idx+1)
+                loop lstore
+            else lstore
+        loop store
+
+
+
         // let (loc, store1) = access t1 locEnv gloEnv store
 
 
@@ -307,7 +321,7 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
         // let aval = getSto store1 a
         // let (i, store2) = eval idx locEnv gloEnv store1
         // (aval + i, store2)
-        exec body locEnv gloEnv store
+        // exec body locEnv gloEnv store
 
     | Expr e ->
         // _ 表示丢弃e的值,返回 变更后的环境store1
