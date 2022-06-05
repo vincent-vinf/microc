@@ -40,6 +40,7 @@ and stmt =
   | While of expr * stmt             (* While loop                  *)
   | For of expr * stmt
   | For1 of expr * expr * expr * stmt   
+  | ForRange of access * access * access * stmt
   | Expr of expr                     (* Expression statement   e;   *)
   | Return of expr option            (* Return from method          *)
   | Block of stmtordec list          (* Block: grouping and scope   *)

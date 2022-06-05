@@ -1,5 +1,6 @@
-FILENAME=ex_for.c
-arg=8
+# FILENAME=ex_for_range.c
+FILENAME=ex_array_index.c
+arg=
 run: clean
 	dotnet run --project interpc.fsproj example/$(FILENAME) $(arg)
 

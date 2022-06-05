@@ -191,7 +191,11 @@ let rec allocate (typ, x) (env0, nextloc) sto0 : locEnv * store =
     let (nextloc1, v, sto1) =
         match typ with
         //数组 调用 initSto 分配 i 个空间
-        | TypA (t, Some i) -> (nextloc + i, nextloc, initSto nextloc i sto0)
+        // | TypA (t, Some i) -> (nextloc + i, nextloc, initSto nextloc i sto0)
+        | TypA (t, Some i) ->
+            let store = initSto nextloc i sto0
+            let store1 = setSto store (nextloc + i) i
+            (nextloc + i + 1, nextloc, store1)
         // 常规变量默认值是 0
         | _ -> (nextloc, 0, sto0)
 
@@ -254,7 +258,7 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
                 store2 //退出循环返回 环境store2
 
         loop store
-    
+
     | For (e, body) ->
 
         //定义 While循环辅助函数 loop
@@ -270,14 +274,40 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
         loop store
     | For1 (e1, e2, e3, body) ->
         let (v, store1) = eval e1 locEnv gloEnv store
-        let rec loop store1 = 
+
+        let rec loop store1 =
             let (v, store2) = eval e2 locEnv gloEnv store1
-            if v<> 0 then
+
+            if v <> 0 then
                 let store3 = exec body locEnv gloEnv store2
                 let (_, store4) = eval e3 locEnv gloEnv store3
                 loop store4
-            else store2
+            else
+                store2
+
         loop store1
+
+    | ForRange (a1, a2, t1, body) ->
+        // let (untilValue,store) = access e2 locEnv gloEnv store
+        // let (loc, store1) = access e1 locEnv gloEnv store
+        // let store2 = setSto store1 loc 0
+        // let rec loop store2 =
+        //     let num = getSto store2 loc
+        //     if num<untilValue then
+        //         let store3 = exec body locEnv gloEnv store2
+        //         let update = num+1
+        //         let store4 = setSto store3 loc update
+        //         loop store4
+        //     else store2
+        // loop store2
+        // let (loc, store1) = access t1 locEnv gloEnv store
+
+
+        // let (a, store1) = access acc locEnv gloEnv store
+        // let aval = getSto store1 a
+        // let (i, store2) = eval idx locEnv gloEnv store1
+        // (aval + i, store2)
+        exec body locEnv gloEnv store
 
     | Expr e ->
         // _ 表示丢弃e的值,返回 变更后的环境store1
@@ -358,16 +388,16 @@ and eval e locEnv gloEnv store : int * store =
             eval e2 locEnv gloEnv store1
         else
             res
-    | Prim3(e1,e2,e3) ->
+    | Prim3 (e1, e2, e3) ->
         // 分别计算3个表达式
-        let (v1,store1) = eval e1 locEnv gloEnv store
-        let (v2,store2) = eval e2 locEnv gloEnv store1
-        let (v3,store3) = eval e3 locEnv gloEnv store2
+        let (v1, store1) = eval e1 locEnv gloEnv store
+        let (v2, store2) = eval e2 locEnv gloEnv store1
+        let (v3, store3) = eval e3 locEnv gloEnv store2
         // 若表达式1非零则返回2式子
         if v1 <> 0 then
-            (v2,store2)
+            (v2, store2)
         else
-            (v3,store3)
+            (v3, store3)
     | Orelse (e1, e2) ->
         let (i1, store1) as res = eval e1 locEnv gloEnv store
 
@@ -376,7 +406,7 @@ and eval e locEnv gloEnv store : int * store =
         else
             eval e2 locEnv gloEnv store1
     | Call (f, es) -> callfun f es locEnv gloEnv store
-    | Preinc (acc) -> 
+    | Preinc (acc) ->
         let (loc, store1) = access acc locEnv gloEnv store
         let res = getSto store1 loc + 1
         (res, setSto store1 loc res)
@@ -393,6 +423,10 @@ and access acc locEnv gloEnv store : int * store =
         let (a, store1) = access acc locEnv gloEnv store
         let aval = getSto store1 a
         let (i, store2) = eval idx locEnv gloEnv store1
+        let len = getSto store1 (a - 1)
+        if i >= len || i < 0 then
+            failwith ("index out of array")
+
         (aval + i, store2)
 
 and evals es locEnv gloEnv store : int list * store =
@@ -465,8 +499,7 @@ let run (Prog topdecs) vs =
     // map [(0, 8)]
     sprintf "\nstore1:\n %A\n" store1
 
-    let endstore =
-        exec mainBody mainBodyEnv (varEnv, funEnv) store1
+    let endstore = exec mainBody mainBodyEnv (varEnv, funEnv) store1
 
     msg $"\nvarEnv:\n{varEnv}"
     msg $"\nStore:\n"
