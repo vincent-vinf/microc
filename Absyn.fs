@@ -28,6 +28,7 @@ and expr =                           // 表达式，右值
   | Call of string * expr list       (* Function call f(...)        *)
   | Preinc of access
   | Predec of access
+  | Prim3 of expr * expr * expr
                                                                    
 and access =                         //左值，存储的位置                                            
   | AccVar of string                 (* Variable access        x    *) 

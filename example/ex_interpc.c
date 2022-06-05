@@ -6,5 +6,6 @@ void main(int n) {
     while (i < n) {
         print i;
         i = i + 1;
+        break;
     }
 }

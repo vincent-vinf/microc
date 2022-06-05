@@ -334,6 +334,16 @@ and eval e locEnv gloEnv store : int * store =
             eval e2 locEnv gloEnv store1
         else
             res
+    | Prim3(e1,e2,e3) ->
+        // 分别计算3个表达式
+        let (v1,store1) = eval e1 locEnv gloEnv store
+        let (v2,store2) = eval e2 locEnv gloEnv store1
+        let (v3,store3) = eval e3 locEnv gloEnv store2
+        // 若表达式1非零则返回2式
+        if v1 <> 0 then
+            (v2,store2)
+        else
+            (v3,store3)
     | Orelse (e1, e2) ->
         let (i1, store1) as res = eval e1 locEnv gloEnv store
 
