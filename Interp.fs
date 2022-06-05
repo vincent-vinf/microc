@@ -254,6 +254,20 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
                 store2 //退出循环返回 环境store2
 
         loop store
+    
+    | For (e, body) ->
+
+        //定义 While循环辅助函数 loop
+        let rec loop store1 =
+            //求值 循环条件,注意变更环境 store
+            let (v, store2) = eval e locEnv gloEnv store1
+            // 继续循环
+            if v <> 0 then
+                loop (exec body locEnv gloEnv store2)
+            else
+                store2 //退出循环返回 环境store2
+
+        loop store
 
     | Expr e ->
         // _ 表示丢弃e的值,返回 变更后的环境store1
@@ -339,7 +353,7 @@ and eval e locEnv gloEnv store : int * store =
         let (v1,store1) = eval e1 locEnv gloEnv store
         let (v2,store2) = eval e2 locEnv gloEnv store1
         let (v3,store3) = eval e3 locEnv gloEnv store2
-        // 若表达式1非零则返回2式
+        // 若表达式1非零则返回2式子
         if v1 <> 0 then
             (v2,store2)
         else

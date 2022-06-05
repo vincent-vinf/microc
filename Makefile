@@ -1,4 +1,4 @@
-FILENAME=ex_interpc.c
+FILENAME=ex_for.c
 arg=8
 run: clean
 	dotnet run --project interpc.fsproj example/$(FILENAME) $(arg)
