@@ -272,9 +272,9 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
         let (v, store1) = eval e1 locEnv gloEnv store
         let rec loop store1 = 
             let (v, store2) = eval e2 locEnv gloEnv store1
-            if v<>0 then
+            if v<> 0 then
                 let store3 = exec body locEnv gloEnv store2
-                let (tmp, store4) = eval e3 locEnv gloEnv store3
+                let (_, store4) = eval e3 locEnv gloEnv store3
                 loop store4
             else store2
         loop store1
