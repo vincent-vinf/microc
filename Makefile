@@ -14,3 +14,15 @@ debug: clean
 
 clean:
 	dotnet clean interpc.fsproj
+
+
+COMP_NAME=ex_comp
+comp:
+	dotnet clean microcc.fsproj
+	dotnet run --project microcc.fsproj  example/$(COMP_NAME).c $(arg)
+comp_run: comp
+	dotnet clean machine.csproj
+	dotnet run --project machine.csproj example/$(COMP_NAME).out $(arg)
+comp_debug: comp
+	dotnet clean machine.csproj
+	dotnet run --project machine.csproj -t example/$(COMP_NAME).out $(arg)
