@@ -2,7 +2,9 @@
 # FILENAME=ex_array_index.c
 # FILENAME=ex_for.c
 # FILENAME=ex_func.c
-FILENAME=ex_go.c
+# FILENAME=ex_go.c
+FILENAME=ex_init.c
+
 arg=
 run: clean
 	dotnet run --project interpc.fsproj example/$(FILENAME) $(arg)

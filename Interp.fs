@@ -202,36 +202,20 @@ let rec allocate (typ, x) (env0, nextloc) sto0 : locEnv * store =
     msg $"\nalloc:\n {((typ, x), (env0, nextloc), sto0)}"
     bindVar x v (env0, nextloc1) sto1
 
+let rec allocateInit (typ, x) (env0, nextloc) sto0 v : locEnv * store =
+
+    let (nextloc1, v, sto1) =
+        match typ with
+        // 常规变量默认值是 0
+        | _ -> (nextloc, v, sto0)
+
+    msg $"\nalloc:\n {((typ, x), (env0, nextloc), sto0)}"
+    bindVar x v (env0, nextloc1) sto1
+
 (* Build global environment of variables and functions.  For global
    variables, store locations are reserved; for global functions, just
    add to global function environment.
 *)
-
-//初始化 解释器环境和store
-let initEnvAndStore (topdecs: topdec list) : locEnv * funEnv * store =
-
-    //包括全局函数和全局变量
-    msg $"\ntopdecs:\n{topdecs}\n"
-
-    let rec addv decs locEnv funEnv store =
-        match decs with
-        | [] -> (locEnv, funEnv, store)
-
-        // 全局变量声明  调用allocate 在store上给变量分配空间
-        | Vardec (typ, x) :: decr ->
-            let (locEnv1, sto1) = allocate (typ, x) locEnv store
-            addv decr locEnv1 funEnv sto1
-
-        //全局函数 将声明(f,(xs,body))添加到全局函数环境 funEnv
-        | Fundec (_, f, xs, body) :: decr -> addv decr locEnv ((f, (xs, body)) :: funEnv) store
-
-    // ([], 0) []  默认全局环境
-    // locEnv ([],0) 变量环境 ，变量定义为空列表[],下一个空闲地址为0
-    // ([("n", 1); ("r", 0)], 2)  表示定义了 变量 n , r 下一个可以用的变量索引是 2
-    // funEnv []   函数环境，函数定义为空列表[]
-    addv topdecs ([], 0) [] emptyStore
-
-(* ------------------------------------------------------------------- *)
 
 (* Interpreting micro-C statements *)
 
@@ -359,6 +343,10 @@ and stmtordec stmtordec locEnv gloEnv store =
     match stmtordec with
     | Stmt stmt -> (locEnv, exec stmt locEnv gloEnv store)
     | Dec (typ, x) -> allocate (typ, x) locEnv store
+    | DecAssign (typ, x, e)-> 
+        let (res, store2) = eval e locEnv gloEnv store
+        allocateInit (typ, x) locEnv store2 res
+
 
 (* Evaluating micro-C expressions *)
 
@@ -433,8 +421,7 @@ and eval e locEnv gloEnv store : int * store =
         else
             eval e2 locEnv gloEnv store1
     | Call (f, es) -> callfun f es locEnv gloEnv store
-    | Go (f, es) ->
-        callfun f es locEnv gloEnv store
+    | Go (f, es) -> callfun f es locEnv gloEnv store
 
     | Preinc (acc) ->
         let (loc, store1) = access acc locEnv gloEnv store
@@ -488,6 +475,38 @@ and callfun f es locEnv gloEnv store : int * store =
         (res, store3)
     with
     | :? System.Collections.Generic.KeyNotFoundException -> (0, store3)
+
+
+//初始化 解释器环境和store
+let initEnvAndStore (topdecs: topdec list) : locEnv * funEnv * store =
+
+    //包括全局函数和全局变量
+    msg $"\ntopdecs:\n{topdecs}\n"
+
+    let rec addv decs locEnv funEnv store =
+        match decs with
+        | [] -> (locEnv, funEnv, store)
+
+        // 全局变量声明  调用allocate 在store上给变量分配空间
+        | Vardec (typ, x) :: decr ->
+            let (locEnv1, sto1) = allocate (typ, x) locEnv store
+            addv decr locEnv1 funEnv sto1
+
+        | VarAssign (typ, x, e) :: decr ->
+            let (res, store2) = eval e locEnv (fst locEnv, funEnv) store
+            let (locEnv1, sto1) = allocateInit (typ, x) locEnv store2 res
+            addv decr locEnv1 funEnv sto1
+
+        //全局函数 将声明(f,(xs,body))添加到全局函数环境 funEnv
+        | Fundec (_, f, xs, body) :: decr -> addv decr locEnv ((f, (xs, body)) :: funEnv) store
+
+    // ([], 0) []  默认全局环境
+    // locEnv ([],0) 变量环境 ，变量定义为空列表[],下一个空闲地址为0
+    // ([("n", 1); ("r", 0)], 2)  表示定义了 变量 n , r 下一个可以用的变量索引是 2
+    // funEnv []   函数环境，函数定义为空列表[]
+    addv topdecs ([], 0) [] emptyStore
+
+(* ------------------------------------------------------------------- *)
 
 
 (* Interpret a complete micro-C program by initializing the store
