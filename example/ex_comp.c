@@ -1,18 +1,12 @@
-void main(int n) {
+void main() {
     int i;
     i = 0;
-    for i < n {
-        print i;
+    for i < 10 {
+        i % 2 == 0 ? print i : print i*2;
         i = i + 1;
     }
     println;
-    int j;
-    for j=0; j<n; j=j+1{
-        print j;
+    for i = 0; i < 10; i = i + 1 {
+        print i;
     }
-    // println;
-    // for {
-    //     print j;
-    //     j++;
-    // }
 }
