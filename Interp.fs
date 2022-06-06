@@ -347,10 +347,9 @@ let rec exec stmt (locEnv: locEnv) (gloEnv: gloEnv) (store: store) : store =
 
         loop stmts (locEnv, store)
 
-    | Return (s) -> 
+    | Return (s) ->
         match s with
-        | None -> 
-            setSto store -1 0
+        | None -> setSto store -1 0
         | Some ss ->
             let (res, store) = eval ss locEnv gloEnv store
             setSto store -1 res
@@ -434,6 +433,9 @@ and eval e locEnv gloEnv store : int * store =
         else
             eval e2 locEnv gloEnv store1
     | Call (f, es) -> callfun f es locEnv gloEnv store
+    | Go (f, es) ->
+        callfun f es locEnv gloEnv store
+
     | Preinc (acc) ->
         let (loc, store1) = access acc locEnv gloEnv store
         let res = getSto store1 loc + 1

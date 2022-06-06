@@ -6,3 +6,5 @@ CLex.fs
 CPar.fs
 CPar.fsi
 machine
+
+.fake

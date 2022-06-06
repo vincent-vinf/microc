@@ -26,6 +26,7 @@ and expr =                           // 表达式，右值
   | Andalso of expr * expr           (* Sequential and              *)
   | Orelse of expr * expr            (* Sequential or               *)
   | Call of string * expr list       (* Function call f(...)        *)
+  | Go of string * expr list
   | Preinc of access
   | Predec of access
   | Prim3 of expr * expr * expr

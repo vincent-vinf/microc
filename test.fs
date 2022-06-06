@@ -1,11 +1,24 @@
-[<Literal>]
-let Three = 3
+open System
+open System.IO
+open System.Threading
 
-let filter123 x =
-    match x with
-    // The following line contains literal patterns combined with an OR pattern.
-    | 1 | 2 | Three -> printfn "Found 1, 2, or 3!"
-    // The following line contains a variable pattern.
-    | var1 -> printfn "%d" var1
+let fooAsync () =
+    task  {
+        printfn "start"
+        do! Async.Sleep(1000)
+        printfn "end"
+    }
 
-for x in 1..10 do filter123 x
+let demo () =
+    let task = fooAsync()
+    // let work = workThenWait () |> Async.Start
+    // printfn "started"
+    // printfn "completed"
+    // task.Wait()
+    printfn "1"
+    // Thread.Sleep(2000)
+    printfn "2"
+    // printfn "completed22222"
+    0
+
+demo ()
