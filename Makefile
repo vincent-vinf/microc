@@ -3,8 +3,8 @@
 # FILENAME=ex_for.c
 # FILENAME=ex_func.c
 # FILENAME=ex_go.c
-FILENAME=ex_init.c
-
+# FILENAME=ex_init.c
+FILENAME=ex_bool.c
 arg=
 run: clean
 	dotnet run --project interpc.fsproj example/$(FILENAME) $(arg)

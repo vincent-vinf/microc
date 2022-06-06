@@ -197,6 +197,7 @@ let rec allocate (typ, x) (env0, nextloc) sto0 : locEnv * store =
             let store1 = setSto store (nextloc + i) i
             (nextloc + i + 1, nextloc, store1)
         // 常规变量默认值是 0
+        | TypB -> (nextloc,0,sto0)
         | _ -> (nextloc, 0, sto0)
 
     msg $"\nalloc:\n {((typ, x), (env0, nextloc), sto0)}"
@@ -207,6 +208,7 @@ let rec allocateInit (typ, x) (env0, nextloc) sto0 v : locEnv * store =
     let (nextloc1, v, sto1) =
         match typ with
         // 常规变量默认值是 0
+        | TypB -> (nextloc,0,sto0)
         | _ -> (nextloc, v, sto0)
 
     msg $"\nalloc:\n {((typ, x), (env0, nextloc), sto0)}"
